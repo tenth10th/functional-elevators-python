@@ -6,8 +6,11 @@ name = "pypi"
 [packages]
 
 [dev-packages]
+pyflakes = "*"
 pytest = "*"
 flake8 = "*"
+mypy = "*"
+black = "*"
 
 [requires]
 python_version = "3.8"
