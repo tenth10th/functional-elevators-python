@@ -62,6 +62,10 @@ It should return the total number of "moves" (movements of the Elevator between 
 
 We intentionally kept our Elevator Scenario simple to start with. If we get it working, and have more time (and want more challenges), consider adding support for more features. (Ideally, TDD these new features, starting with Tests that fail because they aren't supported yet!)
 
+# 2023-07-10 Session
+
+_(Dave, Tara, Lewis, Fernando)_
+
 ## How should we calculate an efficient path for the Elevator?
 
 Given a list of Passengers (each with a starting Floor, and destination floor)
@@ -108,9 +112,35 @@ direction
 group_up
 group_down
 
-
-
-
 ## What Code Do We Need to Write?
 
-* 
+# 2023-08-14 Session
+
+_(Tara, Dave, Edward, Sam)_
+
+We reviewed the problem, and our work so far...
+
+* Finished implementing get highest/lowest floor functions
+
+* Implemented a "Brute Force" solution to compare better solutions against
+
+* _(Refactored tests to use pytest.mark.parametrize!)_
+
+* Recognized the need for a "validation" function:
+
+    * To determine if a solution is valid
+   
+    * And actually delivers all passengers to destinations...
+
+* Changed our main interface: Solutions now return a verbose list of floor "moves"
+
+    * The length of this list is equivalent to the old "total_moves" return
+
+    * _(And we can now determine if it is valid!)_
+
+* Refactored reference "shell" to use the new interface, passing tests for new return value
+
+* Added `move_elevator`` function that generates a list of moves between any two floors
+
+* Reimplemented `brute_force` using `move_elevator` - less code, and better logging, too!
+
