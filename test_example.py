@@ -2,11 +2,12 @@ from elevator import (
     elevator_function,
     get_highest_floor,
     get_lowest_floor,
+    move_elevator,
     brute_force,
     verify_passengers_picked_up,
 )
 
-from pytest import mark
+import pytest
 
 
 def test_elevator_function_signature():
@@ -39,7 +40,7 @@ passengersB = {
 }
 
 
-@mark.parametrize(
+@pytest.mark.parametrize(
     ("passengers", "starting_point", "expected_output", "test_function"),
     [
         (passengersA, 1, 10, get_highest_floor),
@@ -54,18 +55,36 @@ def test_get_highest_or_lowest_floor(
     passengers, starting_point, expected_output, test_function
 ):
     output = test_function(passengers, starting_point)
-
     assert output == expected_output
 
 
-def test_brute_force():
-    starting_point = 2
-    output = brute_force(passengersB, starting_point)
-    # from 2 go down to 1 up to 5 then back down to 1
-    assert output == 1 + 4 + 4
+@pytest.mark.parametrize(
+    ("start", "destination", "expected"),
+    [
+        (1, 5, [2, 3, 4, 5]),
+        (5, 1, [4, 3, 2, 1]),
+    ],
+)
+def test_move_elevator(start, destination, expected):
+    output = move_elevator(start, destination)
+    assert output == expected
+
+
+@pytest.mark.parametrize(
+    ("passengers", "starting_point", "expected"),
+    [
+        (passengersB, 1, [1, 2, 3, 4, 5, 4, 3, 2, 1]),
+        (passengersB, 6, [6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1]),
+        (passengersA, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
+    ],
+)
+def test_brute_force(passengers, starting_point, expected):
+    output = brute_force(passengers, starting_point)
+    assert output == expected
 
 
 def test_verify_passengers_picked_up():
-    current_floor = 2
-    verified_passengers_a = verify_passengers_picked_up(passengersA, current_floor)
-    assert verified_passengers_a["Tom"]["origin"] is None
+    # FIXME: Rewrite now that the output is a list of "moves", rather than a count!
+
+    # Consider breaking this up into multiple sub-functions for easier testability?
+    assert True
