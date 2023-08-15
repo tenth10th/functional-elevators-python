@@ -56,7 +56,8 @@ The top level, "imperative shell" should accept two arguments:
 
 * A list of Passengers, each including a Starting Floor (integer) and a Destination Floor (integer)
 
-It should return the total number of "moves" (movements of the Elevator between floors) required to get all the Passengers to their Destinations as efficiently as possible. (It should probably also return, or at least, print out, the intended path of the elevator as it moves between floors, to help us verify that it's working as intended.)
+_(API Updated on 2023-08-14)_
+It should return ~the total number of "moves" (movements of the Elevator between floors) required to get all the Passengers to their Destinations as efficiently as possible. (It should probably also return, or at least, print out,~ the intended path of the elevator as it moves between floors, to help us verify that it's working as intended. (We can count this to get the "total moves"!)
 
 ## Additional Challenges
 
@@ -120,7 +121,7 @@ _(Tara, Dave, Edward, Sam)_
 
 We reviewed the problem, and our work so far...
 
-* Finished implementing get highest/lowest floor functions
+* Finished implementing `get_highest_floor`/`get_lowest_floor` functions
 
 * Implemented a "Brute Force" solution to compare better solutions against
 
