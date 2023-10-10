@@ -4,6 +4,9 @@ from elevator import (
     get_lowest_floor,
     move_elevator,
     brute_force,
+    take_elevator,
+    check_passenger_delivered,
+    check_moves_are_sequential,
     verify_passengers_picked_up,
 )
 
@@ -83,8 +86,83 @@ def test_brute_force(passengers, starting_point, expected):
     assert output == expected
 
 
-def test_verify_passengers_picked_up():
-    # FIXME: Rewrite now that the output is a list of "moves", rather than a count!
+# def test_verify_passengers_picked_up():
+#     # FIXME: Rewrite now that the output is a list of "moves"
+#     # (rather than a simple count)
 
-    # Consider breaking this up into multiple sub-functions for easier testability?
-    assert True
+#     # Consider breaking this up into multiple sub-functions for easier
+#     # testability?
+#     assert False
+
+
+@pytest.mark.parametrize(
+    ("passenger", "starting_floor", "destination"),
+    [
+        ({"origin": 1, "destination": 5}, 1, 5),
+        ({"origin": 2, "destination": 3}, 1, 3),
+    ],
+)
+def test_take_elevator(passenger, starting_floor, destination):
+    result = take_elevator(passenger, starting_floor)
+    assert result == passenger["destination"]
+
+
+@pytest.mark.parametrize(
+    ("passenger", "moves", "expected"),
+    [
+        ({"origin": 1, "destination": 5}, [1, 2, 3, 4, 5], True),
+        ({"origin": 2, "destination": 3}, [3, 2], False),
+        ({"origin": 2, "destination": 3}, [2, 3], True),
+    ],
+)
+def test_check_passenger_delivered(passenger, moves, expected):
+    assert check_passenger_delivered(passenger, moves) == expected
+
+
+@pytest.mark.parametrize(
+    ("moves", "expected"),
+    [
+        ([1, 2, 3, 4, 5], True),
+        ([1, 2, 4, 5], False),
+        ([5, 4, 3, 2, 1], True),
+    ],
+)
+def test_that_all_moves_are_sequential(moves, expected):
+    # Arrange: Create a hardcoded list of moves
+    # Act: execute method check_all_moves_sequential
+    are_they = check_moves_are_sequential(moves)
+    # Assert: Assert it's true
+    assert are_they == expected
+
+
+@pytest.mark.parametrize(
+    ("passengers", "current_floor", "moves", "expected"),
+    [
+        (
+            {"Tom": {"origin": 1, "destination": 5}, },
+            1,
+            [1, 2, 3, 4, 5],
+            True  # Fully valid move
+        ),
+        (
+            {"Tom": {"origin": 1, "destination": 5}, },
+            2,
+            [2, 3, 4, 5],
+            False  # Passenger isn't fixed up
+        ),
+        (
+            {"Tom": {"origin": 1, "destination": 5}, },
+            1,
+            [1, 2, 3, 5],
+            False  # non-sequential move
+        ),
+        (
+            {"Tom": {"origin": 2, "destination": 5}, },
+            1,
+            [2, 3, 4, 5],
+            False  # First move is not on starting floor
+        )
+    ],
+)
+def test_verify_passengers_picked_up(passengers, current_floor, moves, expected):
+    assert expected == verify_passengers_picked_up(passengers, current_floor, moves)

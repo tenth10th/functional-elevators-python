@@ -30,7 +30,7 @@ def brute_force(passengers, starting_floor):
 
     print("starting on", starting_floor)
 
-    if (lowest_floor != starting_floor):
+    if lowest_floor != starting_floor:
         this_move = move_elevator(starting_floor, lowest_floor)
         print("going to lowest floor", lowest_floor, this_move)
         visited_floors += this_move
@@ -44,6 +44,14 @@ def brute_force(passengers, starting_floor):
     visited_floors += this_move
 
     return visited_floors
+
+
+def take_elevator(passenger, starting_floor):
+    pickup_moves = move_elevator(starting_floor, passenger["origin"])
+    delivery_moves = move_elevator(passenger["origin"], passenger["destination"])
+    full_moves = pickup_moves + delivery_moves
+    print("full_moves", full_moves)
+    return full_moves[-1]
 
 
 """
@@ -81,31 +89,45 @@ def get_is_going_up(origin, destination):
     return destination >= origin
 
 
+def move_elevator(from_floor, to_floor):
+    moves = []
+    if to_floor > from_floor:
+        for x in range(from_floor + 1, to_floor + 1):
+            moves.append(x)
+    else:
+        for x in range(from_floor - 1, to_floor - 1, -1):
+            moves.append(x)
+    return moves
+
+
 def verify_passengers_picked_up(passengers, current_floor, move_list):
     """
     (start of) function to determine if an elevator route
     is "valid", and moves all passengers to destinations...
     """
-    # FIXME: Rewrite now that we return a list of moves, instead of a count!
-
-    # assert that all moves are sequential integers
-    #       (exactly within 1 index of each other?)
-
-    # assert that all passenger origins appear in the move list
-
-    # assert that all passenger destinations appear in the move list
-
-    # assert that a given Passenger's Origin appears before their Destination
-
-    #      (It is okay for either to appear multiple times)
+    if move_list[0] != current_floor:
+        return False
+    for name, values in passengers.items():
+        if not check_passenger_delivered(values, move_list):
+            return False
+    if not check_moves_are_sequential(move_list):
+        return False
+    return True
 
 
-def move_elevator(from_floor, to_floor):
-    moves = []
-    if to_floor > from_floor:
-        for x in range(from_floor+1, to_floor + 1):
-            moves.append(x)
-    else:
-        for x in range(from_floor-1, to_floor - 1, -1):
-            moves.append(x)
-    return moves
+def check_passenger_delivered(passenger, moves):
+    try:
+        origin_index = moves.index(passenger["origin"])
+        moves.index(passenger["destination"], origin_index)
+        return True
+    except ValueError:
+        return False
+
+
+def check_moves_are_sequential(moves):
+    before = moves[0]
+    for v in moves[1:]:
+        if abs(before - v) != 1:
+            return False
+        before = v
+    return True
