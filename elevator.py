@@ -1,21 +1,27 @@
-import copy
+from typing import Dict, List, Tuple
 
 # Example map of Passenger Names -> Data
-# (Names could make for easier logging + debugging)
+# (Names could make for easier logging + debugging?)
 passengers = {
     "A": {"origin": 2, "destination": 5},
     "B": {"origin": 4, "destination": 10},
 }
 
+Passenger = Dict[str, int]
+
+PassengerDict = Dict[str, Passenger]
+
+MoveList = List[int]
+
 
 # "Imperative shell" showing our intended interface
-def elevator_function(passengers, starting_point):
+def elevator_function(passengers: PassengerDict, starting_point: int) -> MoveList:
     # FIXME: this is hardcoded, just to establish what our
     # output should look like - The best path is 1 -> 10
     return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
-def brute_force(passengers, starting_floor):
+def worst_case(passengers: PassengerDict, starting_floor: int) -> MoveList:
     """
     Simple, dumb solution that assumes a worst-case scenario
     (Go to the lowest point of interest, then the highest,
@@ -46,12 +52,38 @@ def brute_force(passengers, starting_floor):
     return visited_floors
 
 
-def take_elevator(passenger, starting_floor):
-    pickup_moves = move_elevator(starting_floor, passenger["origin"])
-    delivery_moves = move_elevator(passenger["origin"], passenger["destination"])
-    full_moves = pickup_moves + delivery_moves
-    print("full_moves", full_moves)
-    return full_moves[-1]
+def second_worst_scenario(passengers: PassengerDict, starting_floor: int) -> MoveList:
+    """
+    Find the passenger whose Origin is closest to Starting Floor
+    Pick them Up
+    Go the direction (up/down) that they wanted to go...
+        Pick up passengers along that route
+        If they match the direction:
+    Go to the next Passenger (closest to Starting Floor)
+    Repeat
+    """
+    path = [starting_floor]
+    closest_passenger_name = find_closest_passenger(passengers, starting_floor)
+    closest_passenger = passengers[closest_passenger_name]
+    first_move = move_elevator(starting_floor, closest_passenger["origin"])
+
+    path += first_move
+    path += get_delivery_path(closest_passenger, closest_passenger["origin"])
+
+    collected_passengers = list(closest_passenger_name)
+    collected, delivered = find_passengers_on_path(passengers, path)
+    collected_passengers += collected
+    delivered_passengers = []
+    delivered_passengers += delivered
+
+    """
+    TODO for next time (today is 11/13/2023)
+    calculate the additional path for passengers who weren't dropped off
+    (for example, if the elevator is going up, and there were passengers going up above
+    the initial path, add the trip the the additional floor as well)
+    """
+
+    return path
 
 
 """
@@ -98,6 +130,47 @@ def move_elevator(from_floor, to_floor):
         for x in range(from_floor - 1, to_floor - 1, -1):
             moves.append(x)
     return moves
+
+
+def find_closest_passenger(passengers: PassengerDict, starting_floor: int) -> str:
+    names = list(passengers.keys())
+    closest_passenger_name = names[0]
+    closest_passenger = passengers[closest_passenger_name]
+    lowest_distance = abs(closest_passenger["origin"] - starting_floor)
+    for name in names[1:]:
+        this_passenger = passengers[name]
+        this_distance = abs(this_passenger["origin"] - starting_floor)
+        if this_distance < lowest_distance:
+            closest_passenger_name = name
+            lowest_distance = this_distance
+
+    return closest_passenger_name
+
+
+def find_passengers_on_path(
+    passengers: PassengerDict, path: MoveList
+) -> Tuple[List[str], List[str]]:
+    origin_passengers = []
+    destination_passengers = []
+    for name, origin_and_dest in passengers.items():
+        if origin_and_dest["origin"] in path:
+            origin_passengers.append(name)
+
+        if origin_and_dest["destination"] in path and (name in origin_passengers):
+            destination_passengers.append(name)
+
+    return origin_passengers, destination_passengers
+
+
+def get_delivery_path(passenger: Passenger, starting_floor: int) -> MoveList:
+    """
+    Automates the process of delivering a single customer, returning a MoveList
+    """
+    pickup_moves = move_elevator(starting_floor, passenger["origin"])
+    delivery_moves = move_elevator(passenger["origin"], passenger["destination"])
+    full_moves = pickup_moves + delivery_moves
+    print("full_moves", full_moves)
+    return full_moves[-1]
 
 
 def verify_passengers_picked_up(passengers, current_floor, move_list):

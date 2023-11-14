@@ -7,4 +7,4 @@ test: format
 typing:
 	mypy .
 
-build: typing test
+build: format typing test

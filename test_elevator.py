@@ -3,11 +3,13 @@ from elevator import (
     get_highest_floor,
     get_lowest_floor,
     move_elevator,
-    brute_force,
-    take_elevator,
+    worst_case,
+    get_delivery_path,
     check_passenger_delivered,
     check_moves_are_sequential,
     verify_passengers_picked_up,
+    find_closest_passenger,
+    find_passengers_on_path,
 )
 
 import pytest
@@ -78,11 +80,15 @@ def test_move_elevator(start, destination, expected):
     [
         (passengersB, 1, [1, 2, 3, 4, 5, 4, 3, 2, 1]),
         (passengersB, 6, [6, 5, 4, 3, 2, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1]),
-        (passengersA, 1, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]),
+        (
+            passengersA,
+            1,
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1],
+        ),
     ],
 )
-def test_brute_force(passengers, starting_point, expected):
-    output = brute_force(passengers, starting_point)
+def test_worst_case(passengers, starting_point, expected):
+    output = worst_case(passengers, starting_point)
     assert output == expected
 
 
@@ -102,8 +108,8 @@ def test_brute_force(passengers, starting_point, expected):
         ({"origin": 2, "destination": 3}, 1, 3),
     ],
 )
-def test_take_elevator(passenger, starting_floor, destination):
-    result = take_elevator(passenger, starting_floor)
+def test_get_delivery_path(passenger, starting_floor, destination):
+    result = get_delivery_path(passenger, starting_floor)
     assert result == passenger["destination"]
 
 
@@ -136,33 +142,134 @@ def test_that_all_moves_are_sequential(moves, expected):
 
 
 @pytest.mark.parametrize(
-    ("passengers", "current_floor", "moves", "expected"),
+    ("passengers", "starting_floor", "moves", "expected"),
     [
         (
-            {"Tom": {"origin": 1, "destination": 5}, },
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
             1,
             [1, 2, 3, 4, 5],
-            True  # Fully valid move
+            True,  # Fully valid move
         ),
         (
-            {"Tom": {"origin": 1, "destination": 5}, },
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
             2,
             [2, 3, 4, 5],
-            False  # Passenger isn't fixed up
+            False,  # Passenger isn't fixed up
         ),
         (
-            {"Tom": {"origin": 1, "destination": 5}, },
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
             1,
             [1, 2, 3, 5],
-            False  # non-sequential move
+            False,  # non-sequential move
         ),
         (
-            {"Tom": {"origin": 2, "destination": 5}, },
+            {
+                "Tom": {"origin": 2, "destination": 5},
+            },
             1,
             [2, 3, 4, 5],
-            False  # First move is not on starting floor
-        )
+            False,  # First move is not on starting floor
+        ),
     ],
 )
-def test_verify_passengers_picked_up(passengers, current_floor, moves, expected):
-    assert expected == verify_passengers_picked_up(passengers, current_floor, moves)
+def test_verify_passengers_picked_up(passengers, starting_floor, moves, expected):
+    assert expected == verify_passengers_picked_up(passengers, starting_floor, moves)
+
+
+@pytest.mark.parametrize(
+    ("passengers", "starting_floor"),
+    [
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
+            1,
+        ),
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+                "Jane": {"origin": 3, "destination": 10},
+                "AnotherPerson": {"origin": 5, "destination": 2},
+            },
+            2,
+        ),
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
+            3,
+        ),
+        (
+            {
+                "Tom": {"origin": 2, "destination": 5},
+            },
+            5,
+        ),
+    ],
+)
+def test_verify_worst_case(passengers, starting_floor):
+    move_list = worst_case(passengers, starting_floor)
+    assert verify_passengers_picked_up(passengers, starting_floor, move_list)
+
+
+@pytest.mark.parametrize(
+    ("passengers", "starting_floor", "expected_passenger"),
+    [
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
+            1,
+            "Tom",
+        ),
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+                "Jane": {"origin": 4, "destination": 7},
+            },
+            3,
+            "Jane",
+        ),
+    ],
+)
+def test_find_closest_passenger(passengers, starting_floor, expected_passenger):
+    closest = find_closest_passenger(passengers, starting_floor)
+    assert closest == expected_passenger
+
+
+@pytest.mark.parametrize(
+    ("passengers", "path", "expected_passengers"),
+    [
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+            },
+            [1, 5],
+            (["Tom"], ["Tom"]),
+        ),
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+                "Jane": {"origin": 4, "destination": 7},
+            },
+            [3, 4, 5],
+            (["Jane"], []),
+        ),
+        (
+            {
+                "Tom": {"origin": 1, "destination": 5},
+                "Jane": {"origin": 4, "destination": 7},
+            },
+            [1, 2, 3, 4, 5],
+            (["Tom", "Jane"], ["Tom"]),
+        ),
+    ],
+)
+def test_find_passengers_on_path(passengers, path, expected_passengers):
+    assert expected_passengers == find_passengers_on_path(passengers, path)
